@@ -44,7 +44,12 @@ public class UserController {
     public ResponseEntity<?> login (@Valid @RequestBody UserLoginDTO userLoginDTO){
 //        Kiểm tra thông tin đăng nhập và sinh token
 //        Trả ve token tron response
-        String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+        String token = null;
+        try {
+            token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return ResponseEntity.ok(token);
     }
 }

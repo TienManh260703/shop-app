@@ -10,16 +10,21 @@ import com.project.shopapp.services.IUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User createUser(UserDTO userDTO) throws DataNotFoundException {
+        // register user
         String phoneNumber = userDTO.getPhoneNumber();
         //Kiểm tra xem số điện thoại đã tồn tại hay chưa
         if (userRepository.existsByPhoneNumber(phoneNumber)) {
@@ -41,13 +46,19 @@ public class UserService implements IUserService {
         // Kiểm tra xem nếu mà có accountID , không yêu cầu password
         if (userDTO.getFacebookAccountId() == 0 && userDTO.getGoogleAccountId() == 0) {
             String password = userDTO.getPassword();
-            // String encodePassword = pa
+            String encodedPassword = passwordEncoder.encode(password);
+            newUser.setPassword(encodedPassword);
         }
         return userRepository.save(newUser);
     }
-    @Override
-    public String login(String phoneNumber, String password) {
 
-        return null;
+    @Override
+    public User login(String phoneNumber, String password) throws Exception {
+        Optional<User> optionalUser = userRepository.findByPhoneNumber(phoneNumber);
+        if (optionalUser.isEmpty()) {
+            throw new DataNotFoundException("Invalid phoneNumber / password");
+        }
+        // trả vè token
+        return optionalUser.get();
     }
 }
